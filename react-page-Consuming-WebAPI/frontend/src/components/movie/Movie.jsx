@@ -67,11 +67,7 @@ export default class Movie extends Component {
                     <div className="col-12 d-flex justify-content-end">
                         <button className="btn btn-primary" onClick={e => this.get(this.state.title)}>
                             Search
-                        </button>
-
-                        <button className="btn btn-secondary ml-2" onClick={e => this.clear(e)}>
-                            Cancel
-                        </button>
+                        </button>                        
                     </div>
                 </div>
             </div>
