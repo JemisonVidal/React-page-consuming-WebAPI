@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import axios from 'axios' 
+import axios from 'axios'
 import Main from '../template/Main'
 
 const headerProps = {
@@ -8,37 +8,56 @@ const headerProps = {
     subtitle: 'Search Movies by Title'
 }
 
+const setting = {
+    //headers: {'Access-Control-Allow-Origin': '*'}
+    method: 'GET',
+    mode: 'no-cors',
+    headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept',
+        'Content-Type': 'application/json',
+    },
+    crossdomain: true,
+    withCredentials: true,
+    credentials: 'same-origin'
+}
+
+let searchTitle = '';
 const baseUrl = 'https://localhost:44313/api/movies/search/?title=';
 const initialState = {
-    titlesearch: '',
-    moviesByYear: {year: 0, movies: 0, total: 0 },
-    list:[]
+    moviesByYear: { year: 0, movies: 0 },
+    total: 0,
+    responseObj: []
 }
 
 export default class Movie extends Component {
 
     state = { ...initialState }
 
-    clear(){
-        this.setState({moviesByYear: initialState.moviesByYear})
+    handleInputChange = (event) => {
+        this.setState({ title: event.target.value });
     }
 
-    get(title = '') {
-        const search = title ? `&title__regex=/${title}/` : ''
-        axios.get(`${baseUrl}?sort=-createdAt${search}`)
-        .then(response => { this.setState({ list: response.data}); })
-        .catch(() => { console.log('Error retrieving data'); });    
+    clear() {
+        this.setState({ moviesByYear: initialState.moviesByYear })
     }
 
-    renderForm(){
+    get(title) {
+        const search = title ? `${title}` : ''
+        axios.get(baseUrl + search)
+            .then(response => { this.setState({ responseObj: response.data }); })
+            .catch(() => { console.log('Error retrieving data'); });
+    }
+
+    renderForm() {
         return (
             <div className="form">
                 <div className="row">
                     <div className="col-12 col-md-6">
                         <div className="form-group">
                             <label>Title</label>
-                            <input type="text" className="form-control" name="title" value={this.state.titlesearch}
-                            placeholder="Enter the title..."/> 
+                            <input type="text" className="form-control" name="title" onChange={this.handleInputChange} value={this.searchTitle}
+                                placeholder="Enter the title..." />
                         </div>
                     </div>
                 </div>
@@ -46,9 +65,9 @@ export default class Movie extends Component {
                 <hr />
                 <div className="row">
                     <div className="col-12 d-flex justify-content-end">
-                        <button className="btn btn-primary" onClick={e => this.get(this.titlesearch)}>                            
+                        <button className="btn btn-primary" onClick={e => this.get(this.state.title)}>
                             Search
-                        </button>  
+                        </button>
 
                         <button className="btn btn-secondary ml-2" onClick={e => this.clear(e)}>
                             Cancel
@@ -63,34 +82,37 @@ export default class Movie extends Component {
         return (
             <table className="table mt-4">
                 <thead>
-                    <tr>                        
+                    <tr>
                         <th>Year</th>
                         <th>Movies</th>
-                        <th>Total</th>
-                    </tr>
+                    </tr>                    
                 </thead>
                 <tbody>
-                    {this.renderRows()}
+                    {this.renderRows()}                    
                 </tbody>
-            </table>
+                <div className="total">
+                <p><strong>Total: </strong>{this.state.responseObj.total}</p>
+                </div> 
+            </table>  
         )
     }
 
     renderRows() {
-        return this.state.list.map(moviesByYear => {
-            return (
-                <tr>
-                    <td>{moviesByYear.year}</td>
-                    <td>{moviesByYear.movies}</td>
-                    <td>{moviesByYear.total}</td>                    
-                </tr>
-            )
-        })
+        if (this.state.responseObj.length !== 0) {
+            return this.state.responseObj.moviesByYear.map(movie => {
+                return (
+                    <tr>
+                        <td>{movie.year}</td>
+                        <td>{movie.movies}</td>
+                    </tr>
+                )
+            })
+        }
     }
 
-    render(){
+    render() {
 
-        return(
+        return (
             <Main {...headerProps}>
                 {this.renderForm()}
                 {this.renderTable()}
